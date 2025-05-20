@@ -1,0 +1,13 @@
+[Unit]
+Description=Video Streaming Service
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+ExecStart=/bin/bash /home/btscie12/stream_video.sh
+Restart=always
+User=btscie12
+RestartSec=5
+
+[Install]
+WantedBy=multi-user.target
