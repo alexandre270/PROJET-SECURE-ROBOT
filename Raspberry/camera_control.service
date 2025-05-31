@@ -1,0 +1,13 @@
+[Unit]
+Description=Camera Control Service
+After=network.target configure_bluetooth.service
+
+[Service]
+Type=simple
+ExecStart=/home/btsciel2/run_camera_control.sh
+Restart=always
+User=btsciel2
+WorkingDirectory=/home/btsciel2
+
+[Install]
+WantedBy=multi_user.target
