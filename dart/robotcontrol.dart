@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'orientation_helper.dart';
-import 'socket.dart';
-import 'fluxvid.dart';
+import 'orientation_helper.dart'; // Gère le basculement d'orientation écran
+import 'socket.dart';             // Service de communication socket
+import 'fluxvid.dart';            // Widget pour afficher le flux vidéo du robot
 
+// Déclaration de la page principale de contrôle du robot
 class RobotControlPage extends StatefulWidget {
   const RobotControlPage({super.key});
 
@@ -11,38 +12,48 @@ class RobotControlPage extends StatefulWidget {
 }
 
 class _RobotControlPageState extends State<RobotControlPage> {
+  // État de la connexion au robot (affiché à l'écran)
   String _status = "Déconnecté";
+
+  // Action en cours affichée à l'écran
   String _currentActionS = "";
 
+  /// Connexion au robot via Socket
   void _connectRobot() async {
-    await SocketService().connect(host: '192.168.0.19', port: 12346);
+    await SocketService().connect(host: '192.168.0.19', port: 12345);
     setState(() {
       _status = "Connecté";
     });
-    _sendRequest('connect', 'Connexion');
+    _sendRequest('connect', 'Connexion'); // Notifie le robot et l'utilisateur
   }
 
+  /// Déconnexion du robot
   void _disconnectRobot() {
     SocketService().disconnect();
     setState(() {
       _status = "Déconnecté";
     });
-    _sendRequest('disconnect', 'Déconnexion');
+    _sendRequest('disconnect', 'Déconnexion'); // Envoie l'action de déconnexion
   }
 
+  /// Arrêt immédiat du robot
   void _stop() {
     setState(() {
       _status = "S'arrête";
     });
-    _sendRequest('stop', 'Stop');
+    _sendRequest('stop', 'Stop'); // Notifie le robot d’un arrêt d’urgence
   }
 
+  /// Envoie d'une commande au robot via socket
+  /// [action] : commande à envoyer (ex : move_forward)
+  /// [displayText] : texte à afficher temporairement à l’écran
   void _sendRequest(String action, [String? displayText]) {
     if (displayText != null) {
       setState(() {
         _currentActionS = displayText;
       });
 
+      // Efface l'action affichée après 1 seconde
       Future.delayed(const Duration(seconds: 1), () {
         if (mounted) {
           setState(() {
@@ -52,6 +63,7 @@ class _RobotControlPageState extends State<RobotControlPage> {
       });
     }
 
+    // Envoi de la commande via le service socket
     try {
       SocketService().send(action);
       print('Message envoyé : $action');
@@ -60,18 +72,20 @@ class _RobotControlPageState extends State<RobotControlPage> {
     }
   }
 
+  /// Construit un bouton directionnel avec icône et action associée
   Widget _buildDirectionButton(
       String label, IconData icon, String action, String displayText) {
     return ElevatedButton(
       onPressed: () => _sendRequest(action, displayText),
       style: ElevatedButton.styleFrom(
         padding: const EdgeInsets.all(20),
-        shape: const CircleBorder(),
+        shape: const CircleBorder(), // Forme ronde
       ),
       child: Icon(icon, size: 30),
     );
   }
 
+  /// Interface utilisateur principale
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -79,6 +93,7 @@ class _RobotControlPageState extends State<RobotControlPage> {
         title: const Text('Contrôle du Robot'),
         backgroundColor: Colors.red,
         actions: [
+          // Bouton pour basculer entre portrait/paysage
           IconButton(
             icon: const Icon(Icons.screen_rotation),
             onPressed: () {
@@ -94,12 +109,16 @@ class _RobotControlPageState extends State<RobotControlPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const FluxVideo(),
+            const FluxVideo(), // Affichage du flux vidéo du robot
             const SizedBox(height: 20),
+
+            // Affiche l'état de connexion du robot
             Text(
               'Robot : $_status',
               style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
             ),
+
+            // Affiche temporairement l'action en cours (ex : "Avancer")
             if (_currentActionS.isNotEmpty) ...[
               const SizedBox(height: 10),
               Text(
@@ -108,6 +127,8 @@ class _RobotControlPageState extends State<RobotControlPage> {
               ),
             ],
             const SizedBox(height: 30),
+
+            // Boutons de base : Stop, Connexion, Déconnexion
             Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
@@ -119,8 +140,11 @@ class _RobotControlPageState extends State<RobotControlPage> {
               ],
             ),
             const SizedBox(height: 40),
+
+            // Zone des contrôles directionnels du robot
             Column(
               children: [
+                // Ligne : Haut
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -129,6 +153,8 @@ class _RobotControlPageState extends State<RobotControlPage> {
                     const SizedBox(width: 70),
                   ],
                 ),
+
+                // Ligne : Gauche - Rotation - Droite
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
@@ -137,6 +163,8 @@ class _RobotControlPageState extends State<RobotControlPage> {
                     _buildDirectionButton("Droite", Icons.arrow_forward, "move_forward_right", "Droite"),
                   ],
                 ),
+
+                // Ligne : BasGauche - Bas - BasDroite
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
